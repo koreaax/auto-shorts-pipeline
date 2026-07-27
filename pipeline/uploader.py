@@ -9,7 +9,9 @@ def upload_to_youtube_shorts(video_title, video_description, video_file_path="pi
     """
     print("\n📤 [Step 3/3] 100% 무인 자동화: 유튜브 채널에 숏폼 업로드 중...")
     
-    youtube_token = os.environ.get("YOUTUBE_ACCESS_TOKEN")
+    raw_token = os.environ.get("YOUTUBE_ACCESS_TOKEN", "")
+    # 줄바꿈 및 앞뒤 공백 제거
+    youtube_token = raw_token.strip().replace("\n", "").replace("\r", "").replace('"', '').replace("'", "")
     
     if not youtube_token:
         print("⚠️ YOUTUBE_ACCESS_TOKEN이 설정되지 않아 업로드 시뮬레이션을 진행합니다.")
@@ -21,7 +23,8 @@ def upload_to_youtube_shorts(video_title, video_description, video_file_path="pi
     url = "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=multipart&part=snippet,status"
     headers = {
         "Authorization": f"Bearer {youtube_token}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
     
     metadata = {
