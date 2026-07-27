@@ -1,10 +1,9 @@
 import os
 from PIL import Image, ImageDraw, ImageFont
 
-def create_shorts_thumbnail(script_text, output_image_path="pipeline_frame.png", output_video_path="pipeline_video.mp4"):
+def create_shorts_thumbnail(script_text, output_image_path="pipeline_frame.png"):
     """
-    1080x1920 (9:16 숏폼 규격) 다크모드 카드뉴스 배경 프레임을 생성하고,
-    유튜브가 정상 수신할 수 있는 5초 MP4 비디오 파일로 변환합니다.
+    1080x1920 (9:16 숏폼 규격) 다크모드 카드뉴스 배경 프레임을 생성합니다.
     """
     width, height = 1080, 1920
     # 딥 다크 퍼플 배경
@@ -49,9 +48,7 @@ def create_shorts_thumbnail(script_text, output_image_path="pipeline_frame.png",
     image.save(output_image_path)
     print(f"🖼️ 숏폼 프레임 이미지 생성 완료: {output_image_path}")
 
-    # MP4 비디오 파일 생성을 위해 imageio / moviepy 대신 비디오 더미 구조 보강
-    # 이미지 파일을 MP4 비디오로 확장 처리
-    return output_image_path, output_video_path
+    return output_image_path
 
 if __name__ == "__main__":
     create_shorts_thumbnail("컴퓨터 버그의 진짜 유래를 아시나요? 1947년 세계 최초의 버그는 진짜 나방이었습니다!")

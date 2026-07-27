@@ -12,7 +12,7 @@ def run_pipeline():
     # 1. AI 대본 및 음성 생성
     script_text, audio_path = generate_script_and_audio()
 
-    # 2. 1080x1920 숏폼 프레임 이미지 생성
+    # 2. 1080x1920 숏폼 프레임 이미지 생성 (단일 파일 경로 리턴)
     frame_path = create_shorts_thumbnail(script_text)
 
     # 3. 100% 무인 유튜브 숏폼 자동 업로드 실행!
