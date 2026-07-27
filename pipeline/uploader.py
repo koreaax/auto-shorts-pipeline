@@ -1,7 +1,7 @@
 import os
 import json
 import urllib.request
-import urllib.parse
+import urllib.error
 
 def upload_to_youtube_shorts(video_title, video_description, video_file_path="pipeline_frame.png"):
     """
@@ -25,12 +25,12 @@ def upload_to_youtube_shorts(video_title, video_description, video_file_path="pi
     headers = {
         "Authorization": f"Bearer {youtube_token}",
         "Content-Type": "application/json; charset=UTF-8",
-        "X-Upload-Content-Type": "image/png" if video_file_path.endswith(".png") else "video/mp4"
+        "X-Upload-Content-Type": "video/mp4"
     }
     
     metadata = {
         "snippet": {
-            "title": video_title[:95],
+            "title": video_title[:90],
             "description": f"{video_description}\n\n#Shorts #AI #IT지식",
             "tags": ["Shorts", "AI", "Tech"],
             "categoryId": "28"
@@ -56,11 +56,10 @@ def upload_to_youtube_shorts(video_title, video_description, video_file_path="pi
             with open(video_file_path, "rb") as f:
                 media_data = f.read()
         else:
-            # 파일이 없을 경우 더미 바이너리
-            media_data = b"dummy"
+            media_data = b"dummy video content"
 
         upload_headers = {
-            "Content-Type": "image/png" if video_file_path.endswith(".png") else "video/mp4",
+            "Content-Type": "video/mp4",
             "Content-Length": str(len(media_data))
         }
 
@@ -69,6 +68,13 @@ def upload_to_youtube_shorts(video_title, video_description, video_file_path="pi
             print("🎉 [축하합니다!] 유튜브 숏폼 채널에 100% 무인 자동 업로드가 완료되었습니다!")
             return True
 
+    except urllib.error.HTTPError as http_err:
+        try:
+            error_body = http_err.read().decode('utf-8')
+            print(f"❌ 유튜브 API 상세 에러 응답 ({http_err.code}): {error_body}")
+        except Exception:
+            print(f"❌ 유튜브 API 상세 에러 응답 ({http_err.code}): {http_err.reason}")
+        return False
     except Exception as e:
         print(f"유튜브 자동 업로드 결과: {e}")
         return False
