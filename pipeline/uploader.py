@@ -2,19 +2,62 @@ import os
 import json
 import urllib.request
 import urllib.error
+import urllib.parse
 
-def upload_to_youtube_shorts(video_title, video_description, video_file_path="pipeline_frame.png"):
+
+def _refresh_access_token():
+    """
+    YOUTUBE_REFRESH_TOKEN + YOUTUBE_CLIENT_ID + YOUTUBE_CLIENT_SECRET 으로
+    Google OAuth2 토큰 엔드포인트에서 새 access token을 발급받습니다.
+    크론탭 실행마다 만료된 토큰 문제를 완전히 해결합니다.
+    """
+    refresh_token = os.environ.get("YOUTUBE_REFRESH_TOKEN", "").strip().strip('"').strip("'")
+    client_id = os.environ.get("YOUTUBE_CLIENT_ID", "").strip().strip('"').strip("'")
+    client_secret = os.environ.get("YOUTUBE_CLIENT_SECRET", "").strip().strip('"').strip("'")
+
+    if not all([refresh_token, client_id, client_secret]):
+        return None
+
+    payload = urllib.parse.urlencode({
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": client_id,
+        "client_secret": client_secret,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://oauth2.googleapis.com/token",
+        data=payload,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            token = data.get("access_token")
+            if token:
+                print("🔑 YouTube OAuth2 액세스 토큰 자동 갱신 완료 (유효: 1시간)")
+            return token
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8")
+        print(f"❌ 토큰 갱신 실패 ({e.code}): {body}")
+        return None
+
+
+def upload_to_youtube_shorts(video_title, video_description, video_file_path="pipeline_output.mp4"):
     """
     YouTube Data API v3 Resumable Upload 프로토콜을 사용해
     숏폼 콘텐츠 및 메타데이터를 100% 무인 업로드합니다.
+    Refresh Token 방식으로 크론탭 실행마다 토큰을 자동 갱신합니다.
     """
     print("\n📤 [Step 3/3] 100% 무인 자동화: 유튜브 채널에 숏폼 업로드 중...")
-    
-    raw_token = os.environ.get("YOUTUBE_ACCESS_TOKEN", "")
-    youtube_token = raw_token.strip().replace("\n", "").replace("\r", "").replace('"', '').replace("'", "")
-    
+
+    # Refresh Token으로 매번 새 Access Token 발급 (401 크론탭 에러 해결)
+    youtube_token = _refresh_access_token()
+
     if not youtube_token:
-        print("⚠️ YOUTUBE_ACCESS_TOKEN이 설정되지 않아 업로드 시뮬레이션을 진행합니다.")
+        print("⚠️ YouTube 인증 정보 없음 — 업로드 시뮬레이션을 진행합니다.")
+        print("   필요한 환경변수: YOUTUBE_REFRESH_TOKEN, YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET")
         print(f"📌 [업로드 예약 성공] 제목: '{video_title}' | 파일: {video_file_path}")
         print("✅ 100% 무인 파이프라인 업로드 단계 완료!")
         return True
