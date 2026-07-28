@@ -1,5 +1,10 @@
 import os
 import sys
+
+# Windows 콘솔 UTF-8 강제 설정 (이모지 깨짐 방지)
+if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 from generator import generate_script_and_audio, load_env_file
 from video_engine import create_shorts_thumbnail, get_keyword_from_script
 from pexels import download_pexels_background

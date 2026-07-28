@@ -12,10 +12,13 @@ def compose_video(image_path, audio_path, output_path="pipeline_output.mp4"):
     - 최대 길이: 60초
     """
     try:
-        from moviepy.editor import ImageClip, AudioFileClip
+        from moviepy import ImageClip, AudioFileClip  # moviepy 2.x
     except ImportError:
-        print("❌ moviepy 미설치. pip install moviepy 후 재시도 하세요.")
-        return None
+        try:
+            from moviepy.editor import ImageClip, AudioFileClip  # moviepy 1.x fallback
+        except ImportError:
+            print("❌ moviepy 미설치. pip install moviepy 후 재시도 하세요.")
+            return None
 
     print("\n🎬 [MP4 합성] 이미지 + 오디오 → MP4 변환 시작...")
 
@@ -31,10 +34,9 @@ def compose_video(image_path, audio_path, output_path="pipeline_output.mp4"):
         audio_clip = AudioFileClip(audio_path)
         duration = audio_clip.duration
 
-        # 정지 이미지를 오디오 길이만큼 재생되는 비디오 클립으로 변환
-        video_clip = ImageClip(image_path, duration=duration)
-        video_clip = video_clip.set_audio(audio_clip)
-        video_clip = video_clip.set_fps(30)
+        # 정지 이미지를 오디오 길이만큼 재생되는 비디오 클립으로 변환 (moviepy 2.x API)
+        video_clip = ImageClip(image_path).with_duration(duration).with_fps(30)
+        video_clip = video_clip.with_audio(audio_clip)
 
         video_clip.write_videofile(
             output_path,
