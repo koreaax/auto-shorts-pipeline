@@ -11,16 +11,22 @@ from pexels import download_pexels_background
 from video_composer import compose_video
 from uploader import upload_to_youtube_shorts
 from blogger import post_to_tistory
+from coupang_products import get_todays_product
 
 def run_pipeline():
     # .env 파일 로드 (로컬 실행 시 환경변수 자동 주입)
     load_env_file()
+
+    # 오늘의 쿠팡 파트너스 제품 자동 선정 (날짜 로테이션)
+    product = get_todays_product()
+    print(f"🛒 오늘의 추천 제품: [{product['name']}]")
+
     print("=" * 60)
     print("🚀 [Full-Auto Pipeline v2] 무인 숏폼 + 블로그 + 무인 업로드 가동!")
     print("=" * 60)
 
-    # 1단계: AI 대본 + Edge-TTS 사람 성우 음성 생성
-    script_text, audio_path = generate_script_and_audio()
+    # 1단계: AI 대본 + Edge-TTS 사람 성우 음성 생성 (오늘의 제품 연계)
+    script_text, audio_path = generate_script_and_audio(product=product)
 
     # 2단계: 대본 키워드 추출 후 Pexels 4K 배경 이미지 자동 다운로드
     keyword = get_keyword_from_script(script_text)
@@ -41,7 +47,7 @@ def run_pipeline():
     # 6단계: 티스토리 블로그에 쿠팡 파트너스 링크 포함 자동 포스팅
     print("\n📝 [보너스] 티스토리 블로그에 동시 포스팅 시작...")
     blog_title = script_text[:30]
-    post_to_tistory(blog_title, script_text)
+    post_to_tistory(blog_title, script_text, product=product)
 
     # 완료 보고
     print("\n" + "=" * 60)

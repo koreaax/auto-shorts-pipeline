@@ -108,8 +108,23 @@ def upload_to_youtube_shorts(video_title, video_description, video_file_path="pi
 
         upload_req = urllib.request.Request(upload_url, data=media_data, headers=upload_headers, method='PUT')
         with urllib.request.urlopen(upload_req) as upload_res:
+            response_body = upload_res.read().decode('utf-8')
+            video_id = None
+            try:
+                res_data = json.loads(response_body)
+                video_id = res_data.get("id")
+            except Exception:
+                pass
+
             print("🎉 [축하합니다!] 유튜브 숏폼 채널에 100% 무인 자동 업로드가 완료되었습니다!")
-            return True
+
+            if video_id:
+                studio_url = f"https://studio.youtube.com/video/{video_id}/edit"
+                print(f"\n🎵 [음원 수익 쉐어] YouTube Studio에서 배경음악을 추가하세요:")
+                print(f"   👉 {studio_url}")
+                print(f"   편집 → 오디오 탭 → 음악 검색 → 저장")
+
+            return video_id if video_id else True
 
     except urllib.error.HTTPError as http_err:
         try:

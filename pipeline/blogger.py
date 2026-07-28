@@ -2,9 +2,10 @@ import os
 import time
 from datetime import datetime
 
-def post_to_tistory(title, content):
+def post_to_tistory(title, content, product=None):
     """
     Selenium을 이용해 티스토리 블로그에 쿠팡 파트너스 링크 포함 포스팅을 100% 무인 자동 게시합니다.
+    product: {"name": "제품명", "category": "카테고리", "link": "URL"} or None
     """
     try:
         from selenium import webdriver
@@ -20,6 +21,14 @@ def post_to_tistory(title, content):
     kakao_password = os.environ.get("TISTORY_KAKAO_PASSWORD", "").strip()
     blog_name      = os.environ.get("TISTORY_BLOG_NAME", "").strip()
     coupang_link   = os.environ.get("COUPANG_AFFILIATE_LINK", "https://link.coupang.com/your-link").strip()
+    product_name   = "개발자 추천 가성비 아이템"
+
+    # 오늘의 제품 정보가 있으면 맞춤 링크와 이름 사용
+    if product:
+        if product.get("link"):
+            coupang_link = product["link"]
+        if product.get("name"):
+            product_name = product["name"]
 
     if not kakao_email or not kakao_password or not blog_name:
         print("⚠️ 티스토리 계정 정보(TISTORY_KAKAO_EMAIL / PASSWORD / BLOG_NAME)가 없어 포스팅을 건너뜁니다.")
@@ -38,7 +47,7 @@ def post_to_tistory(title, content):
 <hr/>
 
 <h3>🛒 개발자 추천 가성비 아이템</h3>
-<p>코딩 생산성을 높여줄 아이템을 확인해 보세요!</p>
+<p>{product_name} - 코딩 생산성을 높여줄 아이템을 확인해 보세요!</p>
 <a href="{coupang_link}" target="_blank" 
    style="display:inline-block; background:#EF4444; color:white; padding:12px 24px; border-radius:8px; text-decoration:none; font-weight:bold;">
 🛍️ 쿠팡에서 바로 보기

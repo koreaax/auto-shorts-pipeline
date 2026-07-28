@@ -30,12 +30,13 @@ def create_shorts_thumbnail(script_text, output_image_path="pipeline_frame.png",
     width, height = 1080, 1920
 
     # Pexels 배경 이미지 사용 여부 분기
-    if bg_image_path and os.path.exists(bg_image_path):
+    using_photo = bg_image_path and os.path.exists(bg_image_path)
+    if using_photo:
         base_img = Image.open(bg_image_path).convert("RGB")
         base_img = base_img.resize((width, height), Image.LANCZOS)
         image = base_img
-        # 반투명 다크 오버레이 (가독성 향상)
-        overlay = Image.new("RGBA", (width, height), (10, 8, 20, 185))
+        # 반투명 다크 오버레이 (가독성 향상) — 120으로 줄여서 사진이 잘 보이게
+        overlay = Image.new("RGBA", (width, height), (10, 8, 20, 120))
         image = image.convert("RGBA")
         image = Image.alpha_composite(image, overlay).convert("RGB")
         print(f"🖼️ Pexels 4K 배경 이미지 적용 완료!")
@@ -45,8 +46,9 @@ def create_shorts_thumbnail(script_text, output_image_path="pipeline_frame.png",
 
     draw = ImageDraw.Draw(image)
 
-    # 상단 그래픽 장식 원
-    draw.ellipse([width//2 - 300, 80, width//2 + 300, 680], fill=(79, 70, 229, 60))
+    # 상단 그래픽 장식 원 — 기본 배경일 때만 표시 (Pexels 사진과 겹치지 않게)
+    if not using_photo:
+        draw.ellipse([width//2 - 300, 80, width//2 + 300, 680], fill=(79, 70, 229, 60))
 
     # 기본 폰트
     try:
