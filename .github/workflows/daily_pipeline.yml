@@ -1,9 +1,9 @@
 name: Daily Automated Content Pipeline
 
 on:
-  schedule:
+  #schedule:
     # 매일 아침 08:00 KST (23:00 UTC)에 자동 실행
-    - cron: '0 23 * * *'
+    # - cron: '0 23 * * *'
   workflow_dispatch: # 필요 시 버튼 눌러 수동 즉시 실행 지원
 
 jobs:
