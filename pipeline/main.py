@@ -40,9 +40,9 @@ def run_pipeline():
     mp4_path = compose_video(frame_path, audio_path)
     upload_target = mp4_path if mp4_path else frame_path
 
-    # 5단계: 유튜브 채널에 100% 무인 자동 업로드
+    # 5단계: 유튜브 채널에 100% 무인 자동 업로드 (쿠팡 파트너스 링크 고정댓글 자동 등록)
     shorts_title = f"💡 {script_text[:25]}... #Shorts"
-    upload_to_youtube_shorts(shorts_title, script_text, upload_target)
+    upload_to_youtube_shorts(shorts_title, script_text, upload_target, product=product)
 
     # 6단계: 티스토리 블로그에 쿠팡 파트너스 링크 포함 자동 포스팅
     print("\n📝 [보너스] 티스토리 블로그에 동시 포스팅 시작...")

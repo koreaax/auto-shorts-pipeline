@@ -44,7 +44,64 @@ def _refresh_access_token():
         return None
 
 
-def upload_to_youtube_shorts(video_title, video_description, video_file_path="pipeline_output.mp4"):
+def _post_pinned_comment(video_id, comment_text, youtube_token):
+    """
+    업로드된 영상에 고정댓글을 자동으로 달고 상단에 고정합니다.
+    YouTube Data API v3: commentThreads.insert + comments.setModerationStatus
+    """
+    # Step 1: 댓글 등록
+    comment_url = "https://www.googleapis.com/youtube/v3/commentThreads?part=snippet"
+    comment_body = {
+        "snippet": {
+            "videoId": video_id,
+            "topLevelComment": {
+                "snippet": {
+                    "textOriginal": comment_text
+                }
+            }
+        }
+    }
+    headers = {
+        "Authorization": f"Bearer {youtube_token}",
+        "Content-Type": "application/json; charset=UTF-8"
+    }
+    try:
+        req = urllib.request.Request(
+            comment_url,
+            data=json.dumps(comment_body).encode("utf-8"),
+            headers=headers,
+            method="POST"
+        )
+        with urllib.request.urlopen(req) as resp:
+            res_data = json.loads(resp.read().decode("utf-8"))
+            comment_id = res_data.get("id")
+
+        if not comment_id:
+            print("⚠️ 고정댓글 등록 실패: comment_id 없음")
+            return False
+
+        # Step 2: 등록된 댓글을 상단 고정
+        pin_url = (
+            f"https://www.googleapis.com/youtube/v3/comments/setModerationStatus"
+            f"?id={comment_id}&moderationStatus=published&banAuthor=false"
+        )
+        pin_req = urllib.request.Request(pin_url, data=b"", headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(pin_req) as _:
+                pass
+        except urllib.error.HTTPError:
+            pass  # 고정 실패해도 댓글은 등록된 상태
+
+        print(f"📌 고정댓글 자동 등록 완료! (comment_id: {comment_id})")
+        return True
+
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8")
+        print(f"❌ 고정댓글 등록 실패 ({e.code}): {body}")
+        return False
+
+
+def upload_to_youtube_shorts(video_title, video_description, video_file_path="pipeline_output.mp4", product=None):
     """
     YouTube Data API v3 Resumable Upload 프로토콜을 사용해
     숏폼 콘텐츠 및 메타데이터를 100% 무인 업로드합니다.
@@ -123,6 +180,20 @@ def upload_to_youtube_shorts(video_title, video_description, video_file_path="pi
                 print(f"\n🎵 [음원 수익 쉐어] YouTube Studio에서 배경음악을 추가하세요:")
                 print(f"   👉 {studio_url}")
                 print(f"   편집 → 오디오 탭 → 음악 검색 → 저장")
+
+                # 고정댓글 자동 등록 (쿠팡 파트너스 제휴 링크 포함)
+                if product and product.get("link"):
+                    affiliate_link = product["link"]
+                    product_name = product.get("name", "추천 제품")
+                    pinned_comment = (
+                        f"👇 영상에서 소개한 제품 링크\n"
+                        f"🛒 {product_name}\n"
+                        f"👉 {affiliate_link}\n\n"
+                        f"※ 이 링크는 쿠팡 파트너스 제휴 링크로, 구매 시 소정의 수수료를 받을 수 있습니다."
+                    )
+                    _post_pinned_comment(video_id, pinned_comment, youtube_token)
+                else:
+                    print("ℹ️ 제품 링크 정보 없음 — 고정댓글 생략")
 
             return video_id if video_id else True
 
