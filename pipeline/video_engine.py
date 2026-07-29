@@ -50,11 +50,21 @@ def create_shorts_thumbnail(script_text, output_image_path="pipeline_frame.png",
     if not using_photo:
         draw.ellipse([width//2 - 300, 80, width//2 + 300, 680], fill=(79, 70, 229, 60))
 
-    # 기본 폰트
+    # 한글 지원 폰트 (Windows / Linux GitHub Actions 모두 지원)
+    KOREAN_FONTS = [
+        "C:/Windows/Fonts/malgun.ttf",           # 맑은 고딕 (Windows)
+        "C:/Windows/Fonts/gulim.ttc",             # 굴림 (Windows)
+        "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",   # Ubuntu (apt: fonts-nanum)
+        "/usr/share/fonts/truetype/nanum/NanumBarunGothic.ttf",
+    ]
+    font_path = next((f for f in KOREAN_FONTS if os.path.exists(f)), None)
     try:
-        font_title = ImageFont.truetype("arial.ttf", 65)
-        font_body = ImageFont.truetype("arial.ttf", 50)
-        font_tag = ImageFont.truetype("arial.ttf", 38)
+        if font_path:
+            font_title = ImageFont.truetype(font_path, 65)
+            font_body = ImageFont.truetype(font_path, 50)
+            font_tag = ImageFont.truetype(font_path, 38)
+        else:
+            raise IOError("Korean font not found")
     except IOError:
         font_title = ImageFont.load_default()
         font_body = ImageFont.load_default()
